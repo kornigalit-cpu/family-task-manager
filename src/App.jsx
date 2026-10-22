@@ -1,15 +1,38 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SearchBar from "./components/molecules/SearchBar";
 import ReleaseGrid from "./components/organisms/ReleaseGrid";
 import AddReleaseModal from "./components/molecules/AddReleaseModal";
 import Button from "./components/atoms/Button";
 import { INITIAL_RELEASES } from "./data/initialReleases";
 
+const STORAGE_KEY = "underground_vault_releases";
+
 export default function App() {
-  const [releases, setReleases] = useState(INITIAL_RELEASES);
+  // טעינה חכמה מה-localStorage: מתבצעת פעם אחת בלבד בעליית האפליקציה
+  const [releases, setReleases] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error("Failed to load releases from localStorage:", error);
+    }
+    return INITIAL_RELEASES;
+  });
+
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRelease, setEditingRelease] = useState(null);
+
+  // סנכרון אוטומטי ל-localStorage בכל שינוי ב-releases
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(releases));
+    } catch (error) {
+      console.error("Failed to save releases to localStorage:", error);
+    }
+  }, [releases]);
 
   // פתיחה במצב הוספה
   const handleOpenAdd = () => {
@@ -26,7 +49,6 @@ export default function App() {
   // שמירה: גם הוספה (Create) וגם עריכה (Update)
   const handleSaveRelease = (releaseData) => {
     if (editingRelease) {
-      // Update
       setReleases((prev) =>
         prev.map((item) =>
           item.id === editingRelease.id
@@ -35,7 +57,6 @@ export default function App() {
         ),
       );
     } else {
-      // Create
       const newRelease = {
         ...releaseData,
         id: Date.now().toString(),
@@ -88,7 +109,7 @@ export default function App() {
         />
       </section>
 
-      {/* רשת כרטיסים עם עריכה ומחיקה */}
+      {/* רשת כרטיסים */}
       <section>
         <ReleaseGrid
           releases={filteredReleases}
