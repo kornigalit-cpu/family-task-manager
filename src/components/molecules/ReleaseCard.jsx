@@ -5,6 +5,7 @@ export default function ReleaseCard({
   release,
   onTradeRequest,
   onDeleteRelease,
+  onEditRelease,
 }) {
   const {
     id,
@@ -57,7 +58,7 @@ export default function ReleaseCard({
           <p className="text-sm text-zinc-400 line-clamp-1">{artist}</p>
         </div>
 
-        {/* תחתית הכרטיס - שנת הוצאה, מצב עותק ומחיר */}
+        {/* תחתית הכרטיס */}
         <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
           <div>
             <span>{year}</span> • <span>{condition}</span>
@@ -67,7 +68,7 @@ export default function ReleaseCard({
           </span>
         </div>
 
-        {/* שורת כפתורי פעולה מאוזנת */}
+        {/* שורת פעולות בתחתית */}
         <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800/60 mt-auto">
           <div>
             {forTrade ? (
@@ -85,16 +86,29 @@ export default function ReleaseCard({
             )}
           </div>
 
-          {onDeleteRelease && (
-            <Button
-              variant="ghost"
-              onClick={() => onDeleteRelease(id)}
-              className="text-xs py-1.5 px-3 border border-vault-orange/40 text-vault-orange hover:bg-vault-orange hover:text-black transition-all font-semibold ml-auto"
-              title="Delete release from vault"
-            >
-              Delete
-            </Button>
-          )}
+          <div className="flex items-center gap-1.5 ml-auto">
+            {onEditRelease && (
+              <Button
+                variant="ghost"
+                onClick={() => onEditRelease(release)}
+                className="text-xs py-1.5 px-2.5 border border-vault-purple/40 text-vault-purple hover:bg-vault-purple hover:text-white transition-all font-semibold"
+                title="Edit release"
+              >
+                Edit
+              </Button>
+            )}
+
+            {onDeleteRelease && (
+              <Button
+                variant="ghost"
+                onClick={() => onDeleteRelease(id)}
+                className="text-xs py-1.5 px-2.5 border border-vault-orange/40 text-vault-orange hover:bg-vault-orange hover:text-black transition-all font-semibold"
+                title="Delete release from vault"
+              >
+                Delete
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>
