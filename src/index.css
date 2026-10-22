@@ -1,1 +1,27 @@
 @import "tailwindcss";
+
+@theme {
+  /* הפלטה המדויקת מהתמונה */
+  --color-vault-bg: #121316; /* שחור עמוק */
+  --color-vault-purple: #9d4edd; /* סגול חשמלי */
+  --color-vault-orange: #ff6b35; /* כתום חי */
+  --color-vault-lime: #ccff00; /* ירוק אסיד / ליים */
+  --color-vault-text: #eae6e1; /* קרם / אפור בהיר */
+
+  /* כינויים סמנטיים נוחים */
+  --color-vault-primary: #ccff00; /* צבע דגש ראשי - ליים */
+  --color-vault-accent: #9d4edd; /* צבע משני - סגול */
+  --color-vault-danger: #ff6b35; /* התראות ומחיקה - כתום */
+
+  /* משפחות פונטים מוגדרות */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+body {
+  background-color: var(--color-vault-bg);
+  color: var(--color-vault-text);
+  font-family: var(--font-sans);
+  margin: 0;
+  min-height: 100vh;
+}
