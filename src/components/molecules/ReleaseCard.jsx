@@ -75,7 +75,7 @@ export default function ReleaseCard({
               <Button
                 variant="ghost"
                 onClick={() => onTradeRequest && onTradeRequest(release)}
-                className="text-xs py-1.5 px-3 border border-vault-lime/40 text-vault-lime hover:bg-vault-lime hover:text-black transition-all font-semibold"
+                className="text-xs py-1.5 px-3 border border-vault-lime/40 text-vault-lime hover:bg-vault-lime hover:text-vault-lime transition-all font-semibold"
               >
                 Request Trade
               </Button>
@@ -91,7 +91,7 @@ export default function ReleaseCard({
               <Button
                 variant="ghost"
                 onClick={() => onEditRelease(release)}
-                className="text-xs py-1.5 px-2.5 border border-vault-purple/40 text-vault-purple hover:bg-vault-purple hover:text-white transition-all font-semibold"
+                className="text-xs py-1.5 px-2.5 border border-vault-purple/40 text-vault-purple hover:bg-vault-purple hover:text-vault-purple transition-all font-semibold"
                 title="Edit release"
               >
                 Edit
@@ -102,7 +102,7 @@ export default function ReleaseCard({
               <Button
                 variant="ghost"
                 onClick={() => onDeleteRelease(id)}
-                className="text-xs py-1.5 px-2.5 border border-vault-orange/40 text-vault-orange hover:bg-vault-orange hover:text-black transition-all font-semibold"
+                className="text-xs py-1.5 px-2.5 border border-vault-orange/40 text-vault-orange hover:bg-vault-orange hover:text-vault-orange transition-all font-semibold"
                 title="Delete release from vault"
               >
                 Delete
