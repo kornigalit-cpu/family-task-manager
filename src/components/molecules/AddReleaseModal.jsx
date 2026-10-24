@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Button from "../atoms/Button";
+import { validateRelease } from "../../utils/validators";
 
 const DEFAULT_STATE = {
   title: "",
@@ -13,13 +14,19 @@ const DEFAULT_STATE = {
   coverUrl: "",
 };
 
-// קומפוננטת הטופס הפנימית - מנהלת את ה-state ישירות ללא צורך ב-useEffect
+// קומפוננטת הטופס הפנימית
 function ReleaseForm({ initialData, onSaveRelease, onClose }) {
   const [formData, setFormData] = useState(initialData || DEFAULT_STATE);
+  const [errors, setErrors] = useState({});
   const isEditing = Boolean(initialData);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: null }));
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -28,7 +35,13 @@ function ReleaseForm({ initialData, onSaveRelease, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.title.trim() || !formData.artist.trim()) return;
+
+    const validation = validateRelease(formData);
+
+    if (!validation.isValid) {
+      setErrors(validation.errors);
+      return;
+    }
 
     onSaveRelease({
       ...formData,
@@ -41,7 +54,6 @@ function ReleaseForm({ initialData, onSaveRelease, onClose }) {
 
   return (
     <div className="relative w-full max-w-lg bg-[#18191e] border border-zinc-800 rounded-2xl p-6 shadow-2xl flex flex-col gap-5">
-      {/* כותרת החלון */}
       <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
         <div>
           <h2 className="text-lg font-black tracking-tight text-vault-text">
@@ -62,39 +74,56 @@ function ReleaseForm({ initialData, onSaveRelease, onClose }) {
         </button>
       </div>
 
-      {/* טופס הנתונים */}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-xs">
-        {/* Title & Artist */}
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        className="flex flex-col gap-4 text-xs"
+      >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-zinc-400 mb-1 font-medium">
               Title *
             </label>
             <input
-              required
               name="title"
               value={formData.title}
               onChange={handleChange}
               placeholder="e.g. Pornography"
-              className="w-full bg-zinc-900 border border-zinc-700/70 rounded-lg px-3 py-2 text-vault-text focus:outline-none focus:border-vault-lime text-xs"
+              className={`w-full bg-zinc-900 border rounded-lg px-3 py-2 text-vault-text focus:outline-none text-xs transition-colors ${
+                errors.title
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-zinc-700/70 focus:border-vault-lime"
+              }`}
             />
+            {errors.title && (
+              <span className="text-red-400 text-[11px] mt-1 block font-medium">
+                {errors.title}
+              </span>
+            )}
           </div>
           <div>
             <label className="block text-zinc-400 mb-1 font-medium">
               Artist *
             </label>
             <input
-              required
               name="artist"
               value={formData.artist}
               onChange={handleChange}
               placeholder="e.g. The Cure"
-              className="w-full bg-zinc-900 border border-zinc-700/70 rounded-lg px-3 py-2 text-vault-text focus:outline-none focus:border-vault-lime text-xs"
+              className={`w-full bg-zinc-900 border rounded-lg px-3 py-2 text-vault-text focus:outline-none text-xs transition-colors ${
+                errors.artist
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-zinc-700/70 focus:border-vault-lime"
+              }`}
             />
+            {errors.artist && (
+              <span className="text-red-400 text-[11px] mt-1 block font-medium">
+                {errors.artist}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Format, Condition & Year */}
         <div className="grid grid-cols-3 gap-3">
           <div>
             <label className="block text-zinc-400 mb-1 font-medium">
@@ -134,12 +163,20 @@ function ReleaseForm({ initialData, onSaveRelease, onClose }) {
               name="year"
               value={formData.year}
               onChange={handleChange}
-              className="w-full bg-zinc-900 border border-zinc-700/70 rounded-lg px-3 py-2 text-vault-text focus:outline-none focus:border-vault-lime text-xs"
+              className={`w-full bg-zinc-900 border rounded-lg px-3 py-2 text-vault-text focus:outline-none text-xs transition-colors ${
+                errors.year
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-zinc-700/70 focus:border-vault-lime"
+              }`}
             />
+            {errors.year && (
+              <span className="text-red-400 text-[11px] mt-1 block font-medium">
+                {errors.year}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Genre & Price */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-zinc-400 mb-1 font-medium">
@@ -163,12 +200,20 @@ function ReleaseForm({ initialData, onSaveRelease, onClose }) {
               value={formData.price}
               onChange={handleChange}
               placeholder="150"
-              className="w-full bg-zinc-900 border border-zinc-700/70 rounded-lg px-3 py-2 text-vault-lime font-mono text-xs focus:outline-none focus:border-vault-lime"
+              className={`w-full bg-zinc-900 border rounded-lg px-3 py-2 text-vault-lime font-mono text-xs focus:outline-none transition-colors ${
+                errors.price
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-zinc-700/70 focus:border-vault-lime"
+              }`}
             />
+            {errors.price && (
+              <span className="text-red-400 text-[11px] mt-1 block font-medium">
+                {errors.price}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Cover URL */}
         <div>
           <label className="block text-zinc-400 mb-1 font-medium">
             Cover Image URL
@@ -178,11 +223,19 @@ function ReleaseForm({ initialData, onSaveRelease, onClose }) {
             value={formData.coverUrl}
             onChange={handleChange}
             placeholder="https://..."
-            className="w-full bg-zinc-900 border border-zinc-700/70 rounded-lg px-3 py-2 text-vault-text focus:outline-none focus:border-vault-lime text-xs"
+            className={`w-full bg-zinc-900 border rounded-lg px-3 py-2 text-vault-text focus:outline-none text-xs transition-colors ${
+              errors.coverUrl
+                ? "border-red-500 focus:border-red-500"
+                : "border-zinc-700/70 focus:border-vault-lime"
+            }`}
           />
+          {errors.coverUrl && (
+            <span className="text-red-400 text-[11px] mt-1 block font-medium">
+              {errors.coverUrl}
+            </span>
+          )}
         </div>
 
-        {/* For Trade Checkbox */}
         <label className="flex items-center gap-2 pt-1 cursor-pointer select-none">
           <input
             type="checkbox"
@@ -194,7 +247,6 @@ function ReleaseForm({ initialData, onSaveRelease, onClose }) {
           <span className="text-zinc-300">Available for trade</span>
         </label>
 
-        {/* כפתורי פעולה */}
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-800/80 mt-2">
           <button
             type="button"
@@ -215,7 +267,7 @@ function ReleaseForm({ initialData, onSaveRelease, onClose }) {
   );
 }
 
-// מעטפת המודאל - משתמשת ב-key כדי לאפס את הטופס באופן טבעי ונקי
+// מעטפת המודאל
 export default function AddReleaseModal({
   isOpen,
   onClose,
