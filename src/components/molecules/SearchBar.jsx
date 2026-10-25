@@ -33,7 +33,7 @@ export default function SearchBar({
 
       {/* שדה הקלט - עם pl-10 כדי לפנות מקום לאייקון */}
       <input
-        className="bg-zinc-900/90 border border-zinc-800 text-vault-text placeholder:text-zinc-500 rounded-lg pl-10 pr-10 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-vault-primary focus:border-transparent transition-all"
+        className="bg-zinc-900/90 border border-zinc-800 text-vault-text placeholder:text-zinc-500 rounded-lg pl-10 pr-10 py-2 text-sm w-full focus:outline-none focus:ring-1 focus:ring-vault-purple focus:border-transparent transition-all"
         type="text"
         value={value}
         onChange={onChange}
