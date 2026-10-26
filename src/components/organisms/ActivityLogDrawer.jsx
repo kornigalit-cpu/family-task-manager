@@ -37,19 +37,31 @@ export default function ActivityLogDrawer({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity">
-      <div className="flex-1" onClick={onClose} />
+    <div
+      className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity"
+      role="presentation"
+    >
+      <div className="flex-1" onClick={onClose} aria-hidden="true" />
 
-      <div className="w-full max-w-md bg-[#121216] border-l border-zinc-800 h-full flex flex-col shadow-2xl p-6 text-zinc-100">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="activity-log-title"
+        className="w-full max-w-md bg-[#121216] border-l border-zinc-800 h-full flex flex-col shadow-2xl p-6 text-zinc-100"
+      >
         <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#ccff00] animate-pulse" />
-            <h2 className="text-lg font-bold tracking-wide uppercase text-zinc-100">
+            <h2
+              id="activity-log-title"
+              className="text-lg font-bold tracking-wide uppercase text-zinc-100"
+            >
               My Activity
             </h2>
           </div>
           <button
             onClick={onClose}
+            aria-label="Close activity log"
             className="text-zinc-400 hover:text-white transition-colors p-1 text-xl leading-none"
             title="Close"
           >
