@@ -34,6 +34,15 @@ This project relies on open-source libraries and tools to deliver a secure, high
 - **Repository:** https://github.com/vitejs/vite
 - **Copyright:** Evan You & Vite Contributors
 
+### Vitest & Testing Library Ecosystem (`vitest`, `@testing-library/react`, `@testing-library/jest-dom`, `jsdom`)
+
+- **License:** MIT
+- **Repositories:**
+  - Vitest: https://github.com/vitest-dev/vitest
+  - Testing Library: https://github.com/testing-library/react-testing-library
+  - jsdom: https://github.com/jsdom/jsdom
+- **Copyright:** Vitest Contributors / Kent C. Dodds & Testing Library Contributors
+
 ### ESLint Ecosystem (`eslint`, `@eslint/js`, plugins)
 
 - **License:** MIT / Apache-2.0
