@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { INITIAL_RELEASES } from "./data/initialReleases";
 import Header from "./components/organisms/Header";
-import ReleaseGrid from "./components/organisms/ReleaseGrid";
-import FilterControls from "./components/organisms/FilterControls";
 import ActionBar from "./components/organisms/ActionBar";
-import { filterAndSortReleases } from "./utils/filterReleases";
+import FilterControls from "./components/organisms/FilterControls";
+import ReleaseGrid from "./components/organisms/ReleaseGrid";
 import ModalsContainer from "./components/organisms/ModalsContainer";
-
+import { INITIAL_RELEASES } from "./data/initialReleases";
+import { filterAndSortReleases } from "./utils/filterReleases";
 import {
   loadReleasesFromStorage,
   saveReleasesToStorage,
@@ -20,42 +19,57 @@ import {
 import { useAuth } from "./context/useAuth";
 
 export default function App() {
-  // שליפת ניהול המודאל ישירות מהקונטקסט הגלובלי
-  const { isAuthModalOpen, closeAuthModal, handleLoginSuccess } = useAuth();
+  // ניהול הרשאות והתחברות ישירות מתוך ה-AuthContext
+  const {
+    isAuthenticated,
+    openAuthModal,
+    isAuthModalOpen,
+    closeAuthModal,
+    handleLoginSuccess,
+  } = useAuth();
 
-  // טעינה מה-localStorage
+  // טעינה וסנכרון של ריליסים
   const [releases, setReleases] = useState(() => {
     return loadReleasesFromStorage(INITIAL_RELEASES);
   });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [formatFilter, setFormatFilter] = useState("All");
+  const [sortBy, setSortBy] = useState("default");
+
+  // מצבי מודאלים ומגירות
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRelease, setEditingRelease] = useState(null);
-  const [sortBy, setSortBy] = useState("default");
   const [logs, setLogs] = useState(() => getStoredLogs());
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [tradingRelease, setTradingRelease] = useState(null);
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
 
-  // סנכרון אוטומטי ל-localStorage בכל שינוי במערך ה-releases
   useEffect(() => {
     saveReleasesToStorage(releases);
   }, [releases]);
 
-  // פתיחה במצב הוספה
+  // הגנת כתיבה: הוספת ריליס דורשת התחברות
   const handleOpenAdd = () => {
+    if (!isAuthenticated) {
+      openAuthModal();
+      return;
+    }
     setEditingRelease(null);
     setIsModalOpen(true);
   };
 
-  // פתיחה במצב עריכה
+  // הגנת כתיבה: עריכת ריליס דורשת התחברות
   const handleOpenEdit = (release) => {
+    if (!isAuthenticated) {
+      openAuthModal();
+      return;
+    }
     setEditingRelease(release);
     setIsModalOpen(true);
   };
 
-  // שמירה (הוספה או עריכה)
+  // שמירה של ריליס (הוספה או עריכה)
   const handleSaveRelease = (releaseData) => {
     if (!releaseData.title?.trim() || !releaseData.artist?.trim()) {
       const updatedLogs = createLogEntry({
@@ -99,7 +113,13 @@ export default function App() {
     setEditingRelease(null);
   };
 
+  // הגנת כתיבה: מחיקת ריליס דורשת התחברות
   const handleDeleteRelease = (id) => {
+    if (!isAuthenticated) {
+      openAuthModal();
+      return;
+    }
+
     const deletedItem = releases.find((r) => r.id === id);
     setReleases((prev) => prev.filter((r) => r.id !== id));
 
@@ -111,13 +131,16 @@ export default function App() {
     setLogs(updatedLogs);
   };
 
-  // פתיחת מודאל הטרייד
+  // הגנת כתיבה: יצירת הצעת טרייד דורשת התחברות
   const handleOpenTrade = (release) => {
+    if (!isAuthenticated) {
+      openAuthModal();
+      return;
+    }
     setTradingRelease(release);
     setIsTradeModalOpen(true);
   };
 
-  // שליחת הצעת טרייד
   const handleTradeSubmit = (proposalData) => {
     setReleases((prev) =>
       prev.map((r) =>
@@ -144,7 +167,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0f1013] text-vault-text flex flex-col font-sans">
-      {/* 1. Global Organism Header: צורך את המשתמש ישירות מ-useAuth */}
+      {/* 1. Header Organism */}
       <Header />
 
       {/* 2. Action Bar Organism */}
@@ -155,9 +178,8 @@ export default function App() {
         logsCount={logs.length}
       />
 
-      {/* 3. Main Content */}
+      {/* 3. Main Content: Controls & Grid Organisms */}
       <main className="max-w-7xl mx-auto w-full px-6 py-8 flex-1 flex flex-col gap-6">
-        {/* Controls Bar: Search & Filters Organism */}
         <FilterControls
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
