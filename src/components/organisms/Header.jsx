@@ -1,4 +1,5 @@
 import { useAuth } from "../../context/useAuth";
+import logoImg from "../../assets/Logo_Vault.jpg";
 
 export default function Header() {
   const { currentUser, openAuthModal, logout } = useAuth();
@@ -8,16 +9,23 @@ export default function Header() {
     : "UV";
 
   return (
-    <header className="w-full border-b border-gray-800/80 bg-[#0d0b14]/90 backdrop-blur-md sticky top-0 z-40 px-6 py-4 transition-all">
+    <header className="w-full border-b border-gray-800/80 bg-[#0d0b14]/90 backdrop-blur-md sticky top-0 z-40 px-6 py-3.5 transition-all">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* צד שמאל: מיתוג */}
-        <div className="flex flex-col">
-          <h1 className="text-xl sm:text-2xl font-black tracking-widest text-white uppercase drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
-            Underground Vault
-          </h1>
-          <span className="text-[10px] sm:text-xs text-gray-500 tracking-[0.2em] uppercase font-semibold">
-            Independent Physical Music Archive
-          </span>
+        {/* צד שמאל: כאן נכנס הלוגו לצד שם האפליקציה */}
+        <div className="flex items-center gap-3.5">
+          <img
+            src={logoImg}
+            alt="Underground Vault Logo"
+            className="w-10 h-10 object-contain rounded-full shadow-[0_0_12px_rgba(204,255,0,0.25)] hover:rotate-180 transition-transform duration-700 cursor-pointer"
+          />
+          <div className="flex flex-col">
+            <h1 className="text-lg sm:text-xl font-black tracking-widest text-white uppercase drop-shadow-[0_0_10px_rgba(255,255,255,0.2)] leading-none">
+              Underground Vault
+            </h1>
+            <span className="text-[10px] sm:text-xs text-gray-500 tracking-[0.2em] uppercase font-semibold mt-1">
+              Independent Physical Music Archive
+            </span>
+          </div>
         </div>
 
         {/* צד ימין: פרופיל וסשן */}
@@ -42,7 +50,7 @@ export default function Header() {
                 type="button"
                 onClick={logout}
                 className="ml-2 text-xs text-gray-400 hover:text-red-400 transition-colors p-1"
-                title="Disconnect terminal session"
+                title="Disconnect session"
                 aria-label="Logout"
               >
                 ⏻
@@ -54,7 +62,7 @@ export default function Header() {
               onClick={openAuthModal}
               className="px-4 py-2 text-xs uppercase tracking-widest font-bold text-vault-purple border border-vault-purple/60 rounded-lg bg-vault-purple/10 hover:bg-vault-purple hover:text-white transition-all shadow-[0_0_12px_rgba(168,85,247,0.2)] hover:shadow-[0_0_20px_rgba(168,85,247,0.5)] active:scale-95"
             >
-              [ COLLECTOR ACCESS ]
+              SIGN IN
             </button>
           )}
         </div>
