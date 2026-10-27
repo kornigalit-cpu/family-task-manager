@@ -1,36 +1,94 @@
 # Underground Vault
 
-## Overview
+A modern web application built for alternative music collectors to catalog their vinyl and cassette archives and engage in community-driven peer-to-peer (P2P) trading, inspired by Soulseek and Discogs.
 
-A web application designed for alternative music collectors to catalog their vinyl and cassette collections and engage in community-driven peer-to-peer (P2P) trading, inspired by Soulseek.
+---
 
 ## Key Features
 
-- **Album Catalog Management (CRUD):** Easily add, edit, view, and delete albums in your collection. Track specific item details including media condition (Grading) and estimated market value.
-- **Advanced Search & Filtering:** Quickly search through collections and filter records by format (Vinyl vs. Cassette) and sub-genres.
-- **P2P Swap Requests:** Connect with community members to propose, manage, and execute physical media trades inspired by peer-to-peer exchange models.
+- **Catalog Management (CRUD):** Add, view, edit, and delete physical releases with format tracking (Vinyl / Cassette), media grading (Mint to G), and pricing.
+- **Discovery Engine:** Instant search and multi-criteria filtering by media format, sub-genre, and trade availability with optimized sorting.
+- **P2P Trade Proposal Flow:** Propose and manage physical media swaps between collectors with status tracking (`Pending Trade`).
+- **Activity & System Logging:** Automatic event logging for catalog changes, validation errors, and trade actions with local export capability.
+- **Role-Based Access Simulation:** Write-protected operations (add, edit, delete, trade) guarded by client-side authentication.
 
-## Tech Stack
+---
 
-- **Frontend:** React 18 & JavaScript (ES6+)
-- **Build Tool:** Vite
-- **Styling:** Tailwind CSS
-- **Testing:** Vitest (Unit Testing)
+## Tech Stack & Architecture
+
+- **Frontend:** React 19, JavaScript (ES6+), Vite
+- **Styling:** Tailwind CSS (v4)
+- **State & Architecture:** Context API with Discriminated Unions, Atomic Component Structure (`atoms`, `molecules`, `organisms`)
+- **Testing:** Vitest, Testing Library, JSDOM (Enforced >= 70% code coverage threshold)
+- **Containerization & CI/CD:** Docker (Multi-stage build with Nginx Alpine), GitHub Actions
+
+---
 
 ## Getting Started
 
-Follow these instructions to get a local copy of the project up and running on your machine.
-
 ### Prerequisites
 
-Make sure you have Node.js installed on your system.
+Designed and tested on Linux (Ubuntu / Debian) and macOS environments.
 
-- **Node.js**: `v18.0.0` or higher
-- **npm**: `v9.0.0` or higher
+- **Node.js:** `v20.0.0` or higher
+- **npm:** `v10.0.0` or higher
+- **Docker:** (Optional, for containerized execution)
 
-### Installation & Setup
+---
 
-git clone [https://github.com/kornigalit-cpu/underground-vault.git](https://github.com/kornigalit-cpu/underground-vault.git)
-cd underground-vault
-npm install
-npm run dev
+### Local Development Setup
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone [https://github.com/kornigalit-cpu/underground-vault.git](https://github.com/kornigalit-cpu/underground-vault.git)
+   cd underground-vault
+   ```
+
+2. **Install dependencies:**
+
+   ```bash
+   npm ci
+   ```
+
+3. **Start the local development server:**
+   ```bash
+   npm run dev
+   ```
+
+---
+
+### Running Tests & Quality Checks
+
+Run the automated test suite and verify quality thresholds:
+
+```bash
+# Run unit tests
+npm test
+
+# Run tests with coverage report (fails if coverage < 70%)
+npm run test:coverage
+
+# Run static linter
+npm run lint
+```
+
+---
+
+### Running with Docker
+
+Build and run the production-ready containerized application locally:
+
+1. **Build the Docker Image:**
+
+   ```bash
+   docker build -t underground-vault:latest .
+   ```
+
+2. **Run the Container:**
+
+   ```bash
+   docker run -d -p 8080:80 --name underground-vault-app underground-vault:latest
+   ```
+
+3. Access the application in your browser at `http://localhost:8080`.

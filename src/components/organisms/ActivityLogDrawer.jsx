@@ -1,9 +1,28 @@
+import { useEffect } from "react";
+import { exportLogsToFile } from "../../utils/logger";
+
 export default function ActivityLogDrawer({
   isOpen,
   onClose,
-  logs,
+  logs = [],
   onClearLogs,
 }) {
+  // האזנה למקש Escape לסגירת המגירה במקלדת (WCAG A11y Requirement)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const formatTime = (isoString) => {
@@ -26,30 +45,44 @@ export default function ActivityLogDrawer({
       case "RELEASE_UPDATED":
         return "text-[#9d4edd] border-[#9d4edd]/40 bg-[#9d4edd]/10";
       case "RELEASE_DELETED":
+      case "VALIDATION_ERROR":
         return "text-red-400 border-red-500/40 bg-red-500/10";
       case "TRADE_REQUESTED":
         return "text-[#ff6b35] border-[#ff6b35]/40 bg-[#ff6b35]/10";
       default:
         return "text-zinc-300 border-zinc-600 bg-zinc-800";
-      case "VALIDATION_ERROR":
-        return "text-red-400 border-red-500/40 bg-red-500/10";
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity">
-      <div className="flex-1" onClick={onClose} />
+    <div
+      className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity"
+      role="presentation"
+    >
+      {/* לחיצה על הרקע סוגרת את המגירה */}
+      <div className="flex-1" onClick={onClose} aria-hidden="true" />
 
-      <div className="w-full max-w-md bg-[#121216] border-l border-zinc-800 h-full flex flex-col shadow-2xl p-6 text-zinc-100">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="activity-log-title"
+        className="w-full max-w-md bg-[#121216] border-l border-zinc-800 h-full flex flex-col shadow-2xl p-6 text-zinc-100"
+      >
+        {/* כותרת וכפתור סגירה */}
         <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#ccff00] animate-pulse" />
-            <h2 className="text-lg font-bold tracking-wide uppercase text-zinc-100">
+            <h2
+              id="activity-log-title"
+              className="text-lg font-bold tracking-wide uppercase text-zinc-100"
+            >
               My Activity
             </h2>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close activity log"
             className="text-zinc-400 hover:text-white transition-colors p-1 text-xl leading-none"
             title="Close"
           >
@@ -57,6 +90,7 @@ export default function ActivityLogDrawer({
           </button>
         </div>
 
+        {/* רשימת הלוגים */}
         <div className="flex-1 overflow-y-auto py-4 space-y-3 pr-1">
           {logs.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-zinc-500 text-sm">
@@ -98,17 +132,29 @@ export default function ActivityLogDrawer({
           )}
         </div>
 
+        {/* שורת סיכום, ייצוא וניקוי בתחתית */}
         {logs.length > 0 && (
-          <div className="pt-4 border-t border-zinc-800 flex justify-between items-center text-xs">
+          <div className="pt-4 border-t border-zinc-800 flex justify-between items-center text-xs gap-2 flex-wrap">
             <span className="text-zinc-500 font-mono">
               Total logs: {logs.length}
             </span>
-            <button
-              onClick={onClearLogs}
-              className="text-xs text-zinc-400 hover:text-red-400 border border-zinc-700 hover:border-red-500/50 px-3 py-1.5 rounded transition-colors"
-            >
-              Clear Log History
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => exportLogsToFile(logs)}
+                className="text-xs text-[#ccff00] hover:text-black border border-[#ccff00]/40 hover:bg-[#ccff00] px-3 py-1.5 rounded transition-all font-mono font-semibold"
+                title="Download activity history as JSON file"
+              >
+                Export JSON
+              </button>
+              <button
+                type="button"
+                onClick={onClearLogs}
+                className="text-xs text-zinc-400 hover:text-red-400 border border-zinc-700 hover:border-red-500/50 px-3 py-1.5 rounded transition-colors"
+              >
+                Clear
+              </button>
+            </div>
           </div>
         )}
       </div>

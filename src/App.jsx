@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Header from "./components/organisms/Header";
 import ActionBar from "./components/organisms/ActionBar";
 import FilterControls from "./components/organisms/FilterControls";
@@ -14,66 +14,77 @@ import {
   getStoredLogs,
   createLogEntry,
   clearAllLogs,
-  ACTION_TYPES,
+  LOG_TYPES,
 } from "./utils/logger";
 import { useAuth } from "./context/useAuth";
+import { useModal, MODAL_TYPES } from "./context/useModal";
 
 export default function App() {
-  // ניהול הרשאות והתחברות ישירות מתוך ה-AuthContext
-  const {
-    isAuthenticated,
-    openAuthModal,
-    isAuthModalOpen,
-    closeAuthModal,
-    handleLoginSuccess,
-  } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const { openModal } = useModal();
 
   // טעינה וסנכרון של ריליסים
   const [releases, setReleases] = useState(() => {
     return loadReleasesFromStorage(INITIAL_RELEASES);
   });
 
+  // מסננים ובקרות חיפוש
   const [searchTerm, setSearchTerm] = useState("");
   const [formatFilter, setFormatFilter] = useState("All");
   const [sortBy, setSortBy] = useState("default");
 
-  // מצבי מודאלים ומגירות
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingRelease, setEditingRelease] = useState(null);
+  // לוגים מקומיים
   const [logs, setLogs] = useState(() => getStoredLogs());
-  const [isLogOpen, setIsLogOpen] = useState(false);
-  const [tradingRelease, setTradingRelease] = useState(null);
-  const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
 
+  // שמירה ל-localStorage בכל שינוי במערך האלבומים
   useEffect(() => {
     saveReleasesToStorage(releases);
   }, [releases]);
 
-  // הגנת כתיבה: הוספת ריליס דורשת התחברות
-  const handleOpenAdd = () => {
-    if (!isAuthenticated) {
-      openAuthModal();
-      return;
-    }
-    setEditingRelease(null);
-    setIsModalOpen(true);
-  };
+  // פונקציית עזר להגנת פעולות הדורשות הזדהות (Guard Pattern)
+  const requireAuth = useCallback(
+    (action) => {
+      if (!isAuthenticated) {
+        openModal(MODAL_TYPES.AUTH);
+        return;
+      }
+      action();
+    },
+    [isAuthenticated, openModal],
+  );
 
-  // הגנת כתיבה: עריכת ריליס דורשת התחברות
-  const handleOpenEdit = (release) => {
-    if (!isAuthenticated) {
-      openAuthModal();
-      return;
-    }
-    setEditingRelease(release);
-    setIsModalOpen(true);
-  };
+  // פתיחת מודל הוספה
+  const handleOpenAdd = useCallback(() => {
+    requireAuth(() => {
+      openModal(MODAL_TYPES.RELEASE_FORM, null);
+    });
+  }, [requireAuth, openModal]);
 
-  // שמירה של ריליס (הוספה או עריכה)
-  const handleSaveRelease = (releaseData) => {
+  // פתיחת מודל עריכה
+  const handleOpenEdit = useCallback(
+    (release) => {
+      requireAuth(() => {
+        openModal(MODAL_TYPES.RELEASE_FORM, release);
+      });
+    },
+    [requireAuth, openModal],
+  );
+
+  // פתיחת מודל טרייד
+  const handleOpenTrade = useCallback(
+    (release) => {
+      requireAuth(() => {
+        openModal(MODAL_TYPES.TRADE, release);
+      });
+    },
+    [requireAuth, openModal],
+  );
+
+  // שמירת ריליס (הוספה או עדכון)
+  const handleSaveRelease = useCallback((releaseData) => {
     if (!releaseData.title?.trim() || !releaseData.artist?.trim()) {
       const updatedLogs = createLogEntry({
-        type: "VALIDATION_ERROR",
+        type: LOG_TYPES.VALIDATION_ERROR,
         title: "Validation Failed: Missing required fields",
         details: "Release title and artist cannot be empty",
       });
@@ -81,20 +92,20 @@ export default function App() {
       return;
     }
 
-    if (editingRelease) {
+    if (releaseData.id) {
+      // עריכת אלבום קיים
       setReleases((prev) =>
-        prev.map((r) =>
-          r.id === editingRelease.id ? { ...releaseData, id: r.id } : r,
-        ),
+        prev.map((r) => (r.id === releaseData.id ? { ...releaseData } : r)),
       );
 
       const updatedLogs = createLogEntry({
-        type: ACTION_TYPES.RELEASE_UPDATED,
+        type: LOG_TYPES.RELEASE_UPDATED,
         title: `Updated "${releaseData.title}"`,
-        details: `${releaseData.artist} - ${releaseData.price || "N/A"}`,
+        details: `${releaseData.artist} - ₪${releaseData.price || 0}`,
       });
       setLogs(updatedLogs);
     } else {
+      // הוספת אלבום חדש
       const newRelease = {
         ...releaseData,
         id: Date.now().toString(),
@@ -102,46 +113,34 @@ export default function App() {
       setReleases((prev) => [newRelease, ...prev]);
 
       const updatedLogs = createLogEntry({
-        type: ACTION_TYPES.RELEASE_ADDED,
+        type: LOG_TYPES.RELEASE_ADDED,
         title: `Added "${newRelease.title}"`,
         details: `${newRelease.artist} (${newRelease.format})`,
       });
       setLogs(updatedLogs);
     }
+  }, []);
 
-    setIsModalOpen(false);
-    setEditingRelease(null);
-  };
+  // מחיקת ריליס
+  const handleDeleteRelease = useCallback(
+    (id) => {
+      requireAuth(() => {
+        const deletedItem = releases.find((r) => r.id === id);
+        setReleases((prev) => prev.filter((r) => r.id !== id));
 
-  // הגנת כתיבה: מחיקת ריליס דורשת התחברות
-  const handleDeleteRelease = (id) => {
-    if (!isAuthenticated) {
-      openAuthModal();
-      return;
-    }
+        const updatedLogs = createLogEntry({
+          type: LOG_TYPES.RELEASE_DELETED,
+          title: `Deleted "${deletedItem?.title || "Release"}"`,
+          details: "Removed from vault archive",
+        });
+        setLogs(updatedLogs);
+      });
+    },
+    [requireAuth, releases],
+  );
 
-    const deletedItem = releases.find((r) => r.id === id);
-    setReleases((prev) => prev.filter((r) => r.id !== id));
-
-    const updatedLogs = createLogEntry({
-      type: ACTION_TYPES.RELEASE_DELETED,
-      title: `Deleted "${deletedItem?.title || "Release"}"`,
-      details: "Removed from vault archive",
-    });
-    setLogs(updatedLogs);
-  };
-
-  // הגנת כתיבה: יצירת הצעת טרייד דורשת התחברות
-  const handleOpenTrade = (release) => {
-    if (!isAuthenticated) {
-      openAuthModal();
-      return;
-    }
-    setTradingRelease(release);
-    setIsTradeModalOpen(true);
-  };
-
-  const handleTradeSubmit = (proposalData) => {
+  // שליחת הצעת טרייד
+  const handleTradeSubmit = useCallback((proposalData) => {
     setReleases((prev) =>
       prev.map((r) =>
         r.id === proposalData.releaseId
@@ -151,19 +150,25 @@ export default function App() {
     );
 
     const updatedLogs = createLogEntry({
-      type: ACTION_TYPES.TRADE_REQUESTED,
+      type: LOG_TYPES.TRADE_REQUESTED,
       title: `Trade Proposed: "${proposalData.releaseTitle}"`,
       details: `Offered: "${proposalData.offeredItem}" by ${proposalData.proposerName}`,
     });
     setLogs(updatedLogs);
-  };
+  }, []);
 
-  // סינון ומיון
-  const filteredReleases = filterAndSortReleases(releases, {
-    searchTerm,
-    formatFilter,
-    sortBy,
-  });
+  const handleClearLogs = useCallback(() => {
+    setLogs(clearAllLogs());
+  }, []);
+
+  // חישוב ממוטב (Memoized) של רשימת הריליסים
+  const filteredReleases = useMemo(() => {
+    return filterAndSortReleases(releases, {
+      searchTerm,
+      formatFilter,
+      sortBy,
+    });
+  }, [releases, searchTerm, formatFilter, sortBy]);
 
   return (
     <div className="min-h-screen bg-[#0f1013] text-vault-text flex flex-col font-sans">
@@ -174,7 +179,7 @@ export default function App() {
       <ActionBar
         releasesCount={releases.length}
         onOpenAdd={handleOpenAdd}
-        onOpenLogs={() => setIsLogOpen(true)}
+        onOpenLogs={() => openModal(MODAL_TYPES.LOGS)}
         logsCount={logs.length}
       />
 
@@ -191,29 +196,18 @@ export default function App() {
 
         <ReleaseGrid
           releases={filteredReleases}
-          onEdit={handleOpenEdit}
+          onEditRelease={handleOpenEdit}
           onDeleteRelease={handleDeleteRelease}
           onTradeRequest={handleOpenTrade}
         />
       </main>
 
-      {/* 4. Modals & Drawers Container */}
+      {/* 4. Modals Container (Consumes ModalContext directly) */}
       <ModalsContainer
-        isAuthModalOpen={isAuthModalOpen}
-        onCloseAuth={closeAuthModal}
-        onAuthSuccess={handleLoginSuccess}
-        isReleaseModalOpen={isModalOpen}
-        onCloseReleaseModal={() => setIsModalOpen(false)}
         onSaveRelease={handleSaveRelease}
-        editingRelease={editingRelease}
-        isTradeModalOpen={isTradeModalOpen}
-        onCloseTradeModal={() => setIsTradeModalOpen(false)}
-        tradingRelease={tradingRelease}
         onSubmitTrade={handleTradeSubmit}
-        isLogOpen={isLogOpen}
-        onCloseLog={() => setIsLogOpen(false)}
         logs={logs}
-        onClearLogs={() => setLogs(clearAllLogs())}
+        onClearLogs={handleClearLogs}
       />
     </div>
   );

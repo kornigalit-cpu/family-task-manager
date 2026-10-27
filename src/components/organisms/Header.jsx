@@ -1,17 +1,22 @@
 import { useAuth } from "../../context/useAuth";
+import { useModal, MODAL_TYPES } from "../../context/useModal";
 import logoImg from "../../assets/Logo_Vault.jpg";
 
 export default function Header() {
-  const { currentUser, openAuthModal, logout } = useAuth();
+  const { user, currentUser, logout } = useAuth();
+  const { openModal } = useModal();
 
-  const userInitials = currentUser?.username
-    ? currentUser.username.slice(0, 2).toUpperCase()
+  // תמיכה בשני השמות: user מה-AuthProvider החדש או currentUser
+  const activeUser = user || currentUser;
+
+  const userInitials = activeUser?.username
+    ? activeUser.username.slice(0, 2).toUpperCase()
     : "UV";
 
   return (
     <header className="w-full border-b border-gray-800/80 bg-[#0d0b14]/90 backdrop-blur-md sticky top-0 z-40 px-6 py-3.5 transition-all">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* צד שמאל: כאן נכנס הלוגו לצד שם האפליקציה */}
+        {/* צד שמאל: לוגו ושם המערכת */}
         <div className="flex items-center gap-3.5">
           <img
             src={logoImg}
@@ -30,7 +35,7 @@ export default function Header() {
 
         {/* צד ימין: פרופיל וסשן */}
         <div className="flex items-center gap-4">
-          {currentUser ? (
+          {activeUser ? (
             <div className="flex items-center gap-3 bg-[#161224] border border-vault-purple/40 px-3.5 py-1.5 rounded-full shadow-[0_0_15px_rgba(168,85,247,0.15)]">
               <div className="w-8 h-8 rounded-full bg-vault-purple/20 border border-vault-purple text-vault-purple font-mono font-bold text-xs flex items-center justify-center">
                 {userInitials}
@@ -42,7 +47,7 @@ export default function Header() {
                   Collector
                 </span>
                 <span className="text-xs font-bold text-white tracking-wide">
-                  {currentUser.username}
+                  {activeUser.username}
                 </span>
               </div>
 
@@ -59,7 +64,7 @@ export default function Header() {
           ) : (
             <button
               type="button"
-              onClick={openAuthModal}
+              onClick={() => openModal(MODAL_TYPES.AUTH)}
               className="px-4 py-2 text-xs uppercase tracking-widest font-bold text-vault-purple border border-vault-purple/60 rounded-lg bg-vault-purple/10 hover:bg-vault-purple hover:text-white transition-all shadow-[0_0_12px_rgba(168,85,247,0.2)] hover:shadow-[0_0_20px_rgba(168,85,247,0.5)] active:scale-95"
             >
               SIGN IN
