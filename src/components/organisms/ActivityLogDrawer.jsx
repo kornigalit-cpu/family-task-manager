@@ -198,7 +198,7 @@ export default function ActivityLogDrawer({
                 className="text-xs text-[#ccff00] hover:text-black border border-[#ccff00]/40 hover:bg-[#ccff00] px-3 py-1.5 rounded transition-all font-mono font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ccff00]"
                 title="Download activity history as JSON file"
               >
-                Export JSON
+                ↓ Download History
               </button>
               <button
                 type="button"
