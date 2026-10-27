@@ -133,4 +133,46 @@ describe("Issue #28: Filtering and Sorting Logic", () => {
       expect(result).toHaveLength(0);
     });
   });
+  describe("Edge Cases & Resilient Filtering", () => {
+    it("handles Case-Insensitive search terms seamlessly", () => {
+      const resultUpper = filterAndSortReleases(MOCK_RELEASES, {
+        searchTerm: "THE CURE",
+      });
+      const resultLower = filterAndSortReleases(MOCK_RELEASES, {
+        searchTerm: "the cure",
+      });
+
+      expect(resultUpper).toHaveLength(1);
+      expect(resultUpper[0].title).toBe("Disintegration");
+      expect(resultUpper).toEqual(resultLower);
+    });
+
+    it("trims excess whitespaces from search terms", () => {
+      const result = filterAndSortReleases(MOCK_RELEASES, {
+        searchTerm: "   Joy Division   ",
+      });
+      expect(result).toHaveLength(1);
+      expect(result[0].artist).toBe("Joy Division");
+    });
+
+    it("safely handles releases with missing optional fields (genre / price / year)", () => {
+      const incompleteReleases = [
+        { id: "101", title: "Minimal Wave Tape" }, // ללא genre, format, price, year
+        { id: "102", title: "Industrial Noise", artist: "SPK", price: 50 },
+      ];
+
+      const result = filterAndSortReleases(incompleteReleases, {
+        searchTerm: "minimal",
+        sortBy: "price-asc",
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe("101");
+    });
+
+    it("returns empty array safely when releases parameter is null or invalid", () => {
+      expect(filterAndSortReleases(null)).toEqual([]);
+      expect(filterAndSortReleases(undefined)).toEqual([]);
+    });
+  });
 });

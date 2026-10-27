@@ -1,37 +1,32 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { AuthContext } from "./AuthContext";
-import {
-  getCurrentUser,
-  logoutUser as performLogout,
-} from "../utils/authService";
+import { getCurrentUser, logoutUser } from "../utils/authService";
 
 export function AuthProvider({ children }) {
-  // המשתמש נטען כבר בהרצה הראשונית מה-Storage
-  const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  // אתחול עצל מקריאת הסשן הפעיל מתוך authService
+  const [user, setUser] = useState(() => getCurrentUser());
 
-  const openAuthModal = () => setIsAuthModalOpen(true);
-  const closeAuthModal = () => setIsAuthModalOpen(false);
+  const login = useCallback((userData) => {
+    setUser(userData);
+  }, []);
 
-  const handleLoginSuccess = (user) => {
-    setCurrentUser(user);
-    setIsAuthModalOpen(false);
-  };
+  const logout = useCallback(() => {
+    logoutUser();
+    setUser(null);
+  }, []);
 
-  const logout = () => {
-    performLogout();
-    setCurrentUser(null);
-  };
+  // הערך נשמר יציב בזיכרון כל עוד המשתמש לא התחבר או התנתק
+  const contextValue = useMemo(
+    () => ({
+      user,
+      isAuthenticated: Boolean(user),
+      login,
+      logout,
+    }),
+    [user, login, logout],
+  );
 
-  const value = {
-    currentUser,
-    isAuthenticated: !!currentUser,
-    isAuthModalOpen,
-    openAuthModal,
-    closeAuthModal,
-    handleLoginSuccess,
-    logout,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+  );
 }
